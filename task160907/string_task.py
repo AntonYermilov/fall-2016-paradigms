@@ -26,7 +26,7 @@ def verbing(s):
 def not_bad(s):
 	i = s.find("not")
 	j = s.find("bad")
-	if i != -1 and j != -1 and i < j:
+	if i != -1 and i < j:
 		return s[:i] + "good" + s[j+3:]
 	return s
  
@@ -42,4 +42,5 @@ def not_bad(s):
 # Example input: 'abcd', 'xy'
 # Example output: 'abxcdy'
 def front_back(a, b):
-    return a[:(len(a) + 1) // 2] + b[:(len(b) + 1) // 2] + a[(len(a) + 1) // 2:] + b[(len(b) + 1) // 2:]
+	f = lambda x : (len(x) + 1) // 2
+	return a[:f(a)] + b[:f(b)] + a[f(a):] + b[f(b):]
