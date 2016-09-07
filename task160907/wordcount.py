@@ -58,11 +58,6 @@ def print_words(filename):
 	words = read_words(filename)
 	print("\n".join("{} {}".format(x.lower(), y) for x, y in sorted(list(count_words(words).items()))))
 
-def compareValues(first, second):
-	if first[0] != second[0]:
-		return 
-	return first[1] < second[1]
-
 def print_top(filename):
 	words = read_words(filename)
 	best = sorted([(-y, x) for x, y in count_words(words).items()])
