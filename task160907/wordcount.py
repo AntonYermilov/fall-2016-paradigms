@@ -42,28 +42,28 @@ import sys
 # calls the print_words() and print_top() functions which you must define.
 
 def count_words(words):
-	cnt = dict([(word, 0) for word in words])
-	for word in words:
-		cnt[word] += 1
-	return cnt
+    cnt = dict([(word, 0) for word in words])
+    for word in words:
+        cnt[word] += 1
+    return cnt
 
 def read_words(filename):
-	fin = open(filename, 'r')
-	data = []
-	for line in fin:
-		data += line.lower().split()
-	fin.close();
-	return data
+    fin = open(filename, 'r')
+    data = []
+    for line in fin:
+        data += line.lower().split()
+    fin.close();
+    return data
 
 def print_words(filename):
-	words = read_words(filename)
-	print("\n".join("{} {}".format(x.lower(), y) for x, y in sorted(list(count_words(words).items()))))
+    words = read_words(filename)
+    print("\n".join("{} {}".format(x.lower(), y) for x, y in sorted(list(count_words(words).items()))))
 
 def print_top(filename):
-	words = read_words(filename)
-	best = sorted([(-y, x) for x, y in count_words(words).items()])
-	for i in range(min(len(best), 20)):
-		print(best[i][1].lower(), -best[i][0])
+    words = read_words(filename)
+    best = sorted([(-y, x) for x, y in count_words(words).items()])
+    for i in range(min(len(best), 20)):
+        print(best[i][1].lower(), -best[i][0])
 
 
 def main():
