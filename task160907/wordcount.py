@@ -53,12 +53,12 @@ def count_words(filename):
     return cnt
 
 def print_words(filename):
-    print("\n".join("{} {}".format(x.lower(), y) for x, y in sorted(list(count_words(filename).items()))))
+    print("\n".join("{} {}".format(x, y) for x, y in sorted(list(count_words(filename).items()))))
 
 def print_top(filename):
     best = sorted([(-y, x) for x, y in count_words(filename).items()])
     for i in range(min(len(best), 20)):
-        print(best[i][1].lower(), -best[i][0])
+        print(best[i][1], -best[i][0])
 
 
 def main():
