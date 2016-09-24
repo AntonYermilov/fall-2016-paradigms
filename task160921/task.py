@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 
 def multiply(a, b, n):
@@ -26,7 +27,7 @@ def multiply(a, b, n):
     return c
 
 def main():
-    with open('data.in', 'r') as f:
+    with sys.stdin as f:
         n, m = int(f.readline()), 1
         while m < n:
             m *= 2
@@ -36,7 +37,7 @@ def main():
         c = multiply(a, b, m)
         #print(a)
         #print(b)
-        #print(a[0 : n, 0 : n].dot(b[0 : n, 0 : n]))
+        print(a[0 : n, 0 : n].dot(b[0 : n, 0 : n]))
         print("\n".join(" ".join(str(c[i][j]) for j in range(n)) for i in range(n)))
 
 if __name__ == '__main__':
