@@ -1,44 +1,50 @@
 import sys
 import numpy as np
 
-def multiply(a, b, n):
-    A = a[0 : n >> 1, 0 : n >> 1]
-    B = a[0 : n >> 1, n >> 1 : n]
-    C = a[n >> 1 : n, 0 : n >> 1]
-    D = a[n >> 1 : n, n >> 1 : n]
-    E = b[0 : n >> 1, 0 : n >> 1]
-    F = b[0 : n >> 1, n >> 1 : n]
-    G = b[n >> 1 : n, 0 : n >> 1]
-    H = b[n >> 1 : n, n >> 1 : n]
-    
-    P1 = A.dot(F - H)
-    P2 = (A + B).dot(H)
-    P3 = (C + D).dot(E)
-    P4 = D.dot(G - E)
-    P5 = (A + D).dot(E + H)
-    P6 = (B - D).dot(G + H)
-    P7 = (A - C).dot(E + F)
+def multiply(a, b, n, m):
+    if n == 1:
+        return a[0, 0] * b[0, 0]
 
-    c = np.array([[0] * n] * n)
-    c[0 : n >> 1, 0 : n >> 1] = P5 + P4 - P2 + P6
-    c[0 : n >> 1, n >> 1 : n] = P1 + P2
-    c[n >> 1 : n, 0 : n >> 1] = P3 + P4
-    c[n >> 1 : n, n >> 1 : n] = P1 + P5 - P3 - P7
+    A = a[:m, :m]
+    B = a[:m, m:n]
+    C = a[m:n, :m]
+    D = a[m:n, m:n]
+    E = b[:m, :m]
+    F = b[:m, m:n]
+    G = b[m:n, :m]
+    H = b[m:n, m:n]
+    
+    k = m >> 1
+    P1 = multiply(A, F - H, m, k)
+    P2 = multiply(A + B, H, m, k)
+    P3 = multiply(C + D, E, m, k)
+    P4 = multiply(D, G - E, m, k)
+    P5 = multiply(A + D, E + H, m, k)
+    P6 = multiply(B - D, G + H, m, k)
+    P7 = multiply(A - C, E + F, m, k)
+
+    c = np.empty((n, n))
+    c[:m, :m] = P5 + P4 - P2 + P6
+    c[:m, m:n] = P1 + P2
+    c[m:n, :m] = P3 + P4
+    c[m:n, m:n] = P1 + P5 - P3 - P7
     return c
 
 def main():
-    with sys.stdin as f:
-        n, m = int(f.readline()), 1
-        while m < n:
-            m *= 2
+    data = np.loadtxt(sys.stdin, dtype = np.int, ndmin = 2, skiprows = 1)
+    n, m = len(data[0]), 1
+    while m < n:
+        m *= 2
+    
+    a = np.zeros((m, m))
+    a[:n, :n] = data[:n, :n]
+    b = np.zeros((m, m))
+    b[:n, :n] = data[n:, :n]
 
-        a = np.array([list(map(int, f.readline().split())) + [0] * (m - n) for i in range(n)] + [[0] * m] * (m - n))
-        b = np.array([list(map(int, f.readline().split())) + [0] * (m - n) for i in range(n)] + [[0] * m] * (m - n))
-        c = multiply(a, b, m)
-        #print(a)
-        #print(b)
-        print(a[0 : n, 0 : n].dot(b[0 : n, 0 : n]))
-        print("\n".join(" ".join(str(c[i][j]) for j in range(n)) for i in range(n)))
-
+    c = multiply(a, b, m, m >> 1)
+    
+    #print(a[:n, :n].dot(b[:n, :n]))
+    print("\n".join(" ".join(str(int(c[i][j])) for j in range(n)) for i in range(n)))
+    
 if __name__ == '__main__':
     main()
