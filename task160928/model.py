@@ -7,7 +7,7 @@ class Scope:
         self.values = {}
 
     def __getitem__(self, key):
-        if self.values.get(key) == None:
+        if not key in self.values:
             return self.parent[key]
         return self.values[key]
 
@@ -52,19 +52,19 @@ class Conditional:
 
     def __init__(self, condition, if_true, if_false=None):
         self.condition = condition
+
+        if if_true == None:
+            if_true = []
         self.if_true = if_true
+        
+        if if_false == None:
+            if_false = []
         self.if_false = if_false
 
     def evaluate(self, scope):
         res = None
-        if self.condition.evaluate(scope).value != 0:
-            if self.if_true != None:
-                for expr in self.if_true:
-                    res = expr.evaluate(scope)
-        else:
-            if self.if_false != None:
-                for expr in self.if_false:
-                    res = expr.evaluate(scope)
+        for expr in self.if_true if self.condition.evaluate(scope).value != 0 else self.if_false:
+            res = expr.evaluate(scope)
         return res
 
 
@@ -74,8 +74,9 @@ class Print:
         self.expr = expr
 
     def evaluate(self, scope):
-        print(self.expr.evaluate(scope).value)
-        return self.expr.evaluate(scope)
+        num = self.expr.evaluate(scope)
+        print(num.value)
+        return num
 
 
 class Read:
@@ -97,8 +98,8 @@ class FunctionCall:
     def evaluate(self, scope):
         function = self.fun_expr.evaluate(scope)
         call_scope = Scope(scope)
-        for i in range(len(function.args)):
-            call_scope[function.args[i]] = self.args[i].evaluate(scope)
+        for name, arg in zip(function.args, self.args):
+            call_scope[name] = arg.evaluate(scope)
         return function.evaluate(call_scope)
 
 
@@ -110,6 +111,26 @@ class Reference:
     def evaluate(self, scope):
         return scope[self.name]
 
+class Operation:
+    binary = {
+                '+': lambda x, y: x + y,
+                '-': lambda x, y: x - y,
+                '*': lambda x, y: x * y,
+                '/': lambda x, y: x // y,
+                '%': lambda x, y: x % y,
+                '==': lambda x, y: x == y,
+                '!=': lambda x, y: x != y,
+                '<': lambda x, y: x < y,
+                '>': lambda x, y: x > y,
+                '<=': lambda x, y: x <= y,
+                '>=': lambda x, y: x >= y,
+                '&&': lambda x, y: x != 0 and y != 0,
+                '||': lambda x, y: x != 0 or y != 0,
+             }
+    unary  = {
+                '-': lambda x: -x,
+                '!': lambda x: not x
+             }
 
 class BinaryOperation:
 
@@ -119,33 +140,7 @@ class BinaryOperation:
         self.rhs = rhs
 
     def evaluate(self, scope):
-        if self.op == '+':
-            return Number(self.lhs.evaluate(scope).value + self.rhs.evaluate(scope).value)
-        if self.op == '-':
-            return Number(self.lhs.evaluate(scope).value - self.rhs.evaluate(scope).value)
-        if self.op == '*':
-            return Number(self.lhs.evaluate(scope).value * self.rhs.evaluate(scope).value)
-        if self.op == '/':
-            return Number(self.lhs.evaluate(scope).value // self.rhs.evaluate(scope).value)
-        if self.op == '%':
-            return Number(self.lhs.evaluate(scope).value % self.rhs.evaluate(scope).value)
-        if self.op == '==':
-            return Number(self.lhs.evaluate(scope).value == self.rhs.evaluate(scope).value)
-        if self.op == '!=':
-            return Number(self.lhs.evaluate(scope).value != self.rhs.evaluate(scope).value)
-        if self.op == '<':
-            return Number(self.lhs.evaluate(scope).value < self.rhs.evaluate(scope).value)
-        if self.op == '>':
-            return Number(self.lhs.evaluate(scope).value > self.rhs.evaluate(scope).value)
-        if self.op == '<=':
-            return Number(self.lhs.evaluate(scope).value <= self.rhs.evaluate(scope).value)
-        if self.op == '>=':
-            return Number(self.lhs.evaluate(scope).value >= self.rhs.evaluate(scope).value)
-        if self.op == '&&':
-            return Number(self.lhs.evaluate(scope).value != 0 and  self.rhs.evaluate(scope).value != 0)
-        if self.op == '||':
-            return Number(self.lhs.evaluate(scope).value != 0 or  self.rhs.evaluate(scope).value != 0)
-        return None
+        return Number(Operation.binary[self.op](self.lhs.evaluate(scope).value, self.rhs.evaluate(scope).value))
 
 class UnaryOperation:
 
@@ -154,12 +149,7 @@ class UnaryOperation:
         self.expr = expr
 
     def evaluate(self, scope):
-        if self.op == '-':
-            return Number(-self.expr.value)
-        if self.op == '!':
-            return Number(0 if self.expr.value != 0 else 1)
-        return None
-
+        return Number(Operation.unary[self.op](self.expr.evaluate(scope).value))
 
 def example():
     parent = Scope()
@@ -184,22 +174,28 @@ def my_tests():
     Print(BinaryOperation(Reference('n'),  '*', Reference('m'))).evaluate(scope)
 
     scope['g'] = Function(('n', 'm'),
-                          [Print(BinaryOperation(Reference('n'), '*', Reference('m'))),
+                          [
+                           Print(BinaryOperation(Reference('n'), '*', Reference('m'))),
                            Print(Reference('n')),
                            Print(Reference('m'))
                           ])
 
     scope['f'] = Function(('n', 'm'),
-                          [Conditional(BinaryOperation(Reference('n'), '>=', Reference('m')),
-                                     [Print(Reference('n')),
-                                      FunctionCall(FunctionDefinition('g', scope['g']),
-                                                   [Reference('m'), BinaryOperation(Reference('n'), '%', Reference('m'))]),
-                                     ])
+                          [
+                           Conditional(BinaryOperation(Reference('n'), '>=', Reference('m')),
+                                       [
+                                        Print(Reference('n')),
+                                        FunctionCall(FunctionDefinition('g', scope['g']),
+                                                     [Reference('m'), BinaryOperation(Reference('n'), '%', Reference('m'))])
+                                       ],
+                                       [
+                                        Print(UnaryOperation('-', Reference('n')))
+                                       ])
                           ])
     FunctionCall(FunctionDefinition('f', scope['f']),
                  [Reference('n'), Reference('m')]).evaluate(scope)
 
 
-if __name__ = '__main__':
+if __name__ == '__main__':
     example()
     my_tests()
