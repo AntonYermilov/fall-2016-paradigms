@@ -61,9 +61,9 @@ class ConstantFolder(ConstantFolderVisitor):
         op.rhs = self.visit(op.rhs)
         if isinstance(op.lhs, Number) and isinstance(op.rhs, Number):
             return op.evaluate(None)
-        if isinstance(op.lhs, Number) and op.lhs.value == 0 and op.op == '*':
+        if isinstance(op.lhs, Number) and isinstance(op.rhs, Reference) and op.lhs.value == 0 and op.op == '*':
             return Number(0)
-        if isinstance(op.rhs, Number) and op.rhs.value == 0 and op.op == '*':
+        if isinstance(op.lhs, Reference) and isinstance(op.rhs, Number) and op.rhs.value == 0 and op.op == '*':
             return Number(0)
         if isinstance(op.lhs, Reference) and isinstance(op.rhs, Reference) and op.op == '-' and op.lhs.name == op.rhs.name:
             return Number(0)
