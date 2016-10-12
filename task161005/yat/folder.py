@@ -70,6 +70,7 @@ class ConstantFolder(ConstantFolderVisitor):
         return op
 
     def visitUnaryOperation(self, op):
+        op.expr = self.visit(op.expr)
         if isinstance(op.expr, Number):
             return op.evaluate(None)
         return op
@@ -97,7 +98,7 @@ def my_tests():
                                         FunctionCall(g_definition, [Reference('m'), BinaryOperation(Reference('n'), '%', Reference('m'))])
                                        ],
                                        [
-                                        Print(UnaryOperation('!', Number(0)))
+                                        Print(UnaryOperation('!', BinaryOperation(BinaryOperation(Number(3), '*', Number(2)), '-', Number(6))))
                                        ])
                           ])
 

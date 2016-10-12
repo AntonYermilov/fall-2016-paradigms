@@ -34,12 +34,10 @@ class PrettyPrinter(PrettyPrinterVisitor):
             if i + 1 != len(fun.args):
                 print(", ", end = "")
         print(") {")
-
-        if fun.body is not None:
-            self.depth += 1
-            for expr in fun.body:
-                self.visit(expr)
-            self.depth -= 1
+        self.depth += 1
+        for expr in fun.body:
+            self.visit(expr)
+        self.depth -= 1
         print("    " * self.depth + "}", end = "")
 
     def visitFunctionDefinition(self, fun_def):
@@ -56,7 +54,7 @@ class PrettyPrinter(PrettyPrinterVisitor):
                 self.visit(expr)
             self.depth -= 1
         print("    " * self.depth + "}", end = "")
-        if cond.if_false is not None and len(cond.if_false) != 0:
+        if cond.if_false is not None:
             print(" else {")
             self.depth += 1
             for expr in cond.if_false:
@@ -180,6 +178,8 @@ def my_tests():
     call = FunctionCall(f_definition, [Reference('n'), Reference('m')])
     printer.visit(call)
     call.evaluate(scope)
+
+    
 
 
 if __name__ == "__main__":
