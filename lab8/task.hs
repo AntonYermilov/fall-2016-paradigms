@@ -1,7 +1,9 @@
 head' :: [a] -> a
+head' [] = []
 head' (a : b) = a
 
 tail' :: [a] -> [a]
+tail' [] = []
 tail' (a : b) = b
 
 take' :: Int -> [a] -> [a]
