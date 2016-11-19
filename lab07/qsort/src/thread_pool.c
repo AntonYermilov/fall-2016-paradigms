@@ -20,25 +20,25 @@ static void* process(void* data) {
 				task->finished = true;
 				pthread_cond_signal(&task->cond);
 				pthread_mutex_unlock(&task->mutex);
-			}
 		}
-
-		return NULL;
 	}
 
-	task_t* task_create(thread_pool_t* pool, void (*func)(void*), void* args) {
-		task_t* task = malloc(sizeof(task_t));
-		task->pool = pool;
-		task->func = func;
-		task->args = args;
-		task->finished = false;
-		task->left = task->right = NULL;
-		pthread_mutex_init(&task->mutex, NULL);
-		pthread_cond_init(&task->cond, NULL);
-		return task;
-	}
+	return NULL;
+}
 
-	void thpool_init(thread_pool_t* pool, uint16_t threads_nm) {
+task_t* task_create(thread_pool_t* pool, void (*func)(void*), void* args) {
+	task_t* task = malloc(sizeof(task_t));
+	task->pool = pool;
+	task->func = func;
+	task->args = args;
+	task->finished = false;
+	task->left = task->right = NULL;
+	pthread_mutex_init(&task->mutex, NULL);
+	pthread_cond_init(&task->cond, NULL);
+	return task;
+}
+
+void thpool_init(thread_pool_t* pool, uint16_t threads_nm) {
 	squeue_init(&pool->queue);
 
 	pool->threads = malloc(threads_nm * sizeof(pthread_t));
