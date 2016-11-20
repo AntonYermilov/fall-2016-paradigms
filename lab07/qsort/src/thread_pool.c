@@ -16,10 +16,10 @@ static void* process(void* data) {
 			task_t* task = (task_t*)(node);
 
 			pthread_mutex_lock(&task->mutex);
-				task->func((void*)(task));
-				task->finished = true;
-				pthread_cond_signal(&task->cond);
-				pthread_mutex_unlock(&task->mutex);
+			task->func((void*)(task));
+			task->finished = true;
+			pthread_cond_signal(&task->cond);
+			pthread_mutex_unlock(&task->mutex);
 		}
 	}
 
