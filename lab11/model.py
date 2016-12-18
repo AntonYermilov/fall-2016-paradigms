@@ -138,7 +138,7 @@ class BinaryOperation:
         self.rhs = rhs
 
     def evaluate(self, scope):
-        return Number(Operation.binary[self.op](self.lhs.evaluate(scope).value, self.rhs.evaluate(scope).value))
+        return Number(int(Operation.binary[self.op](self.lhs.evaluate(scope).value, self.rhs.evaluate(scope).value)))
 
 class UnaryOperation:
 
@@ -147,4 +147,4 @@ class UnaryOperation:
         self.expr = expr
 
     def evaluate(self, scope):
-        return Number(Operation.unary[self.op](self.expr.evaluate(scope).value))
+        return Number(int(Operation.unary[self.op](self.expr.evaluate(scope).value)))

@@ -1,5 +1,6 @@
 import sys
 import unittest
+from unittest.mock import patch
 import io
 from model import *
 
@@ -29,16 +30,20 @@ class NumberTest(unittest.TestCase):
         self.assertIsInstance(self.scope["a"], Number)
         self.assertIsInstance(self.scope["a"].evaluate(self.scope), Number)
     def test_equal(self):
-        self.assertEqual(self.scope["a"].value, 2)
-        self.assertEqual(self.scope["a"].evaluate(self.scope), self.scope["a"])
+        with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
+            Print(self.scope["a"]).evaluate(self.scope)
+            self.assertEqual(mock_stdout.getvalue(), '2\n')
+            self.assertEqual(self.scope["a"].evaluate(self.scope), self.scope["a"])
         
 class ReferenceTest(unittest.TestCase):
     def setUp(self):
         self.scope = Scope()
     def test_reference(self):
-        self.scope["a"] = Number(100500)
-        self.assertIsInstance(Reference("a").evaluate(self.scope), Number)
-        self.assertEqual(Reference("a").evaluate(self.scope).value, 100500)
+        with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout: 
+            self.scope["a"] = Number(100500)
+            self.assertIsInstance(Reference("a").evaluate(self.scope), Number)
+            Print(self.scope["a"]).evaluate(self.scope)
+            self.assertEqual(mock_stdout.getvalue(), '100500\n')
 
 class FunctionTest(unittest.TestCase):
     def setUp(self):
@@ -50,8 +55,10 @@ class FunctionTest(unittest.TestCase):
         self.assertIsInstance(self.scope["func1"].body, list)
         self.assertIsInstance(self.scope["func1"].evaluate(self.scope), Number)
     def test_results(self):
-        self.assertEqual(self.scope["func1"].evaluate(self.scope).value, 2)
-        self.assertEqual(self.scope["func2"].evaluate(self.scope), None)
+        with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
+            Print(self.scope["func1"].evaluate(self.scope)).evaluate(self.scope)
+            self.assertEqual(mock_stdout.getvalue(), '2\n')
+            self.assertEqual(self.scope["func2"].evaluate(self.scope), None)
     
 class FunctionDefinitionTest(unittest.TestCase):
     def setUp(self):
@@ -59,8 +66,6 @@ class FunctionDefinitionTest(unittest.TestCase):
         self.function = Function(["arg"], [Number(1), Number(2)])
         self.definition = FunctionDefinition("func", self.function)
     def test_functionDefinition(self):
-        self.assertIsInstance(self.definition.name, str)
-        self.assertIsInstance(self.definition.function, Function)
         self.assertIsInstance(self.definition.evaluate(self.scope), Function)
         self.assertIsInstance(self.scope["func"], Function)
         self.assertEqual(self.scope["func"], self.function)
@@ -69,11 +74,13 @@ class FunctionCallTest(unittest.TestCase):
     def setUp(self):
         self.scope = Scope()
     def test_functionCallNotEmpty(self):
-        function = Function(["a", "b"], [Reference("a"), Reference("b")])
-        definition = FunctionDefinition("func", function)
-        call = FunctionCall(definition, [Number(2), Number(3)])
-        self.assertIsInstance(call.evaluate(self.scope), Number)
-        self.assertEqual(call.evaluate(self.scope).value, 3)
+        with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout: 
+            function = Function(["a", "b"], [Reference("a"), Reference("b")])
+            definition = FunctionDefinition("func", function)
+            call = FunctionCall(definition, [Number(2), Number(3)])
+            self.assertIsInstance(call.evaluate(self.scope), Number)
+            Print(call.evaluate(self.scope)).evaluate(self.scope)
+            self.assertEqual(mock_stdout.getvalue(), '3\n')
     def test_functionCallEmpty(self):
         function = Function(["a", "b"], [])
         definition = FunctionDefinition("func", function)
@@ -85,11 +92,15 @@ class ConditionalTest(unittest.TestCase):
     def setUp(self):
         self.scope = Scope()
     def test_iftrue_bothNotEmpty(self):
-        cond = Conditional(Number(1), [Number(2), Number(3)], [Number(5)])
-        self.assertEqual(cond.evaluate(self.scope).value, 3)
+        with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
+            cond = Conditional(Number(1), [Number(2), Number(3)], [Number(5)])
+            Print(cond.evaluate(self.scope)).evaluate(self.scope)
+            self.assertEqual(mock_stdout.getvalue(), '3\n')
     def test_iffalse_bothNotEmpty(self):
-        cond = Conditional(Number(0), [Number(2)], [Number(3), Number(5)])
-        self.assertEqual(cond.evaluate(self.scope).value, 5)
+        with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
+            cond = Conditional(Number(0), [Number(2)], [Number(3), Number(5)])
+            Print(cond.evaluate(self.scope)).evaluate(self.scope)
+            self.assertEqual(mock_stdout.getvalue(), '5\n')
     def test_iftrue_bothEmpty(self):
         Conditional(Number(1), [], []).evaluate(self.scope)
     def test_iffalse_bothEmpty(self):
@@ -103,49 +114,70 @@ class BinaryOperationTest(unittest.TestCase):
     def setUp(self):
         self.scope = Scope()
     def test_operations(self):
-        a = Number(5)
-        b = Number(2)
-        c = Number(0)
-        self.assertEqual(BinaryOperation(a, '+', b).evaluate(self.scope).value, 7)
-        self.assertEqual(BinaryOperation(a, '-', b).evaluate(self.scope).value, 3)
-        self.assertEqual(BinaryOperation(a, '*', b).evaluate(self.scope).value, 10)
-        self.assertEqual(BinaryOperation(a, '/', b).evaluate(self.scope).value, 2)
-        self.assertEqual(BinaryOperation(a, '%', b).evaluate(self.scope).value, 1)
-        self.assertEqual(BinaryOperation(a, '==', b).evaluate(self.scope).value, 0)
-        self.assertEqual(BinaryOperation(a, '!=', b).evaluate(self.scope).value, 1)
-        self.assertEqual(BinaryOperation(a, '>', b).evaluate(self.scope).value, 1)
-        self.assertEqual(BinaryOperation(a, '<', b).evaluate(self.scope).value, 0)
-        self.assertEqual(BinaryOperation(a, '>=', b).evaluate(self.scope).value, 1)
-        self.assertEqual(BinaryOperation(a, '<=', b).evaluate(self.scope).value, 0)
-        self.assertEqual(BinaryOperation(a, '&&', c).evaluate(self.scope).value, 0)
-        self.assertEqual(BinaryOperation(a, '||', c).evaluate(self.scope).value, 1)
+        for lhs in range(-10, 10):
+            for rhs in range(-10, 10):
+                for op in ['+', '-', '*', '/', '%', '==', '!=', '>', '<', '>=', '<=', '&&', '||']:
+                    if rhs == 0 and (op == '/' or op == '%'):
+                        continue
+                    with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
+                        res = BinaryOperation(Number(lhs), op, Number(rhs)).evaluate(self.scope)
+                        Print(res).evaluate(self.scope)
+                        if op == '+':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs + rhs)) + '\n')
+                        if op == '-':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs - rhs)) + '\n')
+                        if op == '*':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs * rhs)) + '\n')
+                        if op == '/':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs // rhs)) + '\n')
+                        if op == '%':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs % rhs)) + '\n')
+                        if op == '==':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs == rhs)) + '\n')
+                        if op == '!=':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs != rhs)) + '\n')
+                        if op == '>':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs > rhs)) + '\n')
+                        if op == '<':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs < rhs)) + '\n')
+                        if op == '>=':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs >= rhs)) + '\n')
+                        if op == '<=':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs <= rhs)) + '\n')
+                        if op == '&&':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs != 0 and rhs != 0)) + '\n')
+                        if op == '||':
+                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs != 0 or rhs != 0)) + '\n')
         
 class UnaryOperationTest(unittest.TestCase):
     def setUp(self):
         self.scope = Scope()
     def test_operations(self):
-        a = Number(0)
-        b = Number(1)
-        c = Number(5)
-        d = Number(-3)
-        self.assertEqual(UnaryOperation('-', a).evaluate(self.scope).value, 0)
-        self.assertEqual(UnaryOperation('-', b).evaluate(self.scope).value, -1)
-        self.assertEqual(UnaryOperation('-', c).evaluate(self.scope).value, -5)
-        self.assertEqual(UnaryOperation('-', d).evaluate(self.scope).value, 3)
-        self.assertEqual(UnaryOperation('!', a).evaluate(self.scope).value, 1)
-        self.assertEqual(UnaryOperation('!', b).evaluate(self.scope).value, 0)
-        self.assertEqual(UnaryOperation('!', c).evaluate(self.scope).value, 0)
-        self.assertEqual(UnaryOperation('!', d).evaluate(self.scope).value, 0)
-
-
+        for val in range(-10, 10):
+            for op in ['-', '!']:
+                with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
+                    res = UnaryOperation(op, Number(val)).evaluate(self.scope)
+                    Print(res).evaluate(self.scope)
+                    self.assertEqual(mock_stdout.getvalue(), str(int(-val if op == '-' else not val)) + '\n')
+            
 class ReadTest(unittest.TestCase):
     def setUp(self):
         self.scope = Scope()
-        sys.stdin = io.StringIO(u'100500\n')
     def test_read(self):
-        num = Read("a").evaluate(self.scope)
-        self.assertIsInstance(num, Number)
-        self.assertEqual(num.value, 100500)
+        with patch('sys.stdin', new = io.StringIO('100500')), patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
+            num = Read('a').evaluate(self.scope)
+            self.assertIsInstance(num, Number)
+            self.assertEqual(num, self.scope['a'])
+            Print(num).evaluate(self.scope)
+            self.assertEqual(mock_stdout.getvalue(), '100500\n')
+
+class PrintTest(unittest.TestCase):
+    def setUp(self):
+        self.scope = Scope()
+    def test_print(self):
+        with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
+            Print(Number(5)).evaluate(self.scope)
+            self.assertEqual(mock_stdout.getvalue(), '5\n')
 
 if __name__ == '__main__':
     unittest.main()
