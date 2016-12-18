@@ -81,7 +81,7 @@ class FunctionCallTest(unittest.TestCase):
     def test_functionCallEmpty(self):
         function = Function(["a", "b"], [])
         definition = FunctionDefinition("func", function)
-        call = FunctionCall(definition, [])
+        call = FunctionCall(definition, [Number(2), Number(3)])
         call.evaluate(self.scope)
 
 
