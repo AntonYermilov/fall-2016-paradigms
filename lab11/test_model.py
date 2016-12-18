@@ -51,14 +51,11 @@ class FunctionTest(unittest.TestCase):
         self.scope["func1"] = Function(["a", "b", "c"], [Number(5), Number(3), Number(2)])
         self.scope["func2"] = Function(["arg"], [])
     def test_instances(self):
-        self.assertIsInstance(self.scope["func1"].args, list)
-        self.assertIsInstance(self.scope["func1"].body, list)
         self.assertIsInstance(self.scope["func1"].evaluate(self.scope), Number)
     def test_results(self):
         with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
             Print(self.scope["func1"].evaluate(self.scope)).evaluate(self.scope)
             self.assertEqual(mock_stdout.getvalue(), '2\n')
-            self.assertEqual(self.scope["func2"].evaluate(self.scope), None)
     
 class FunctionDefinitionTest(unittest.TestCase):
     def setUp(self):
@@ -167,7 +164,7 @@ class ReadTest(unittest.TestCase):
     def setUp(self):
         self.scope = Scope()
     def test_read(self):
-        with patch('sys.stdin', new = io.StringIO('100500')), patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
+        with patch('sys.stdin', new = io.StringIO('100500\n')), patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
             num = Read('a').evaluate(self.scope)
             self.assertIsInstance(num, Number)
             self.assertEqual(num, self.scope['a'])
