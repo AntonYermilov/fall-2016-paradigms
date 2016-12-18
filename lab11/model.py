@@ -118,16 +118,16 @@ class Operation:
                 '%': lambda x, y: x % y,
                 '==': lambda x, y: x == y,
                 '!=': lambda x, y: x != y,
-                '<': lambda x, y: x < y,
-                '>': lambda x, y: x > y,
-                '<=': lambda x, y: x <= y,
+                '<': lambda x, y: 100498 if x < y else 0,
+                '>': lambda x, y: 100499 if x > y else 0,
+                '<=': lambda x, y: 100500 if x <= y else 0,
                 '>=': lambda x, y: x >= y,
-                '&&': lambda x, y: x != 0 and y != 0,
+                '&&': lambda x, y: 255 if x != 0 and y != 0 else False,
                 '||': lambda x, y: x != 0 or y != 0,
              }
     unary  = {
                 '-': lambda x: -x,
-                '!': lambda x: not x
+                '!': lambda x: 10 if not x else 0
              }
 
 class BinaryOperation:

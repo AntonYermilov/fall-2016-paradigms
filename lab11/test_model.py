@@ -123,31 +123,31 @@ class BinaryOperationTest(unittest.TestCase):
                         res = BinaryOperation(Number(lhs), op, Number(rhs)).evaluate(self.scope)
                         Print(res).evaluate(self.scope)
                         if op == '+':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs + rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()), lhs + rhs)
                         if op == '-':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs - rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()), lhs - rhs)
                         if op == '*':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs * rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()), lhs * rhs)
                         if op == '/':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs // rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()), lhs // rhs)
                         if op == '%':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs % rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()), lhs % rhs)
                         if op == '==':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs == rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()) != 0, lhs == rhs)
                         if op == '!=':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs != rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()) != 0, lhs != rhs)
                         if op == '>':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs > rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()) != 0, lhs > rhs)
                         if op == '<':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs < rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()) != 0, lhs < rhs)
                         if op == '>=':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs >= rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()) != 0, lhs >= rhs)
                         if op == '<=':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs <= rhs)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()) != 0, lhs <= rhs)
                         if op == '&&':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs != 0 and rhs != 0)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()) != 0, lhs != 0 and rhs != 0)
                         if op == '||':
-                            self.assertEqual(mock_stdout.getvalue(), str(int(lhs != 0 or rhs != 0)) + '\n')
+                            self.assertEqual(int(mock_stdout.getvalue()) != 0, lhs != 0 or rhs != 0)
         
 class UnaryOperationTest(unittest.TestCase):
     def setUp(self):
@@ -158,7 +158,10 @@ class UnaryOperationTest(unittest.TestCase):
                 with patch('sys.stdout', new_callable = io.StringIO) as mock_stdout:
                     res = UnaryOperation(op, Number(val)).evaluate(self.scope)
                     Print(res).evaluate(self.scope)
-                    self.assertEqual(mock_stdout.getvalue(), str(int(-val if op == '-' else not val)) + '\n')
+                    if op == '-':
+                        self.assertEqual(int(mock_stdout.getvalue()), -val)
+                    if op == '!':
+                        self.assertEqual(int(mock_stdout.getvalue()) != 0, not val)
             
 class ReadTest(unittest.TestCase):
     def setUp(self):
